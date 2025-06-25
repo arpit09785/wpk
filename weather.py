@@ -2,71 +2,76 @@ import numpy as np
 import pickle
 import streamlit as st
 
-# Load the trained model
-loaded_model = pickle.load(open('D:/internship/SAV files/ParkinsonsSVM.sav', 'rb'))
+# Load trained model
+loaded_model = pickle.load(open('weather.sav', 'rb'))
 
-def heart_disease_prediction(input_data):
-    # Convert input data to numpy array and reshape
+def weather_prediction(input_data):
     input_data_as_array = np.asarray(input_data, dtype=float)
     input_data_reshaped = input_data_as_array.reshape(1, -1)
 
-    # Make prediction
     prediction = loaded_model.predict(input_data_reshaped)
 
     if prediction[0] == 1:
-        return 'The person has Parkinson.'
+        return 'Rainy'
+    elif prediction[0] == 0:
+        return 'Cloudy'
+    elif prediction[0] == 3:
+        return 'Sunny'
     else:
-        return 'The person does not have Parkinson.'
+        return 'Snowy'
 
 def main():
-    # Title
-    st.title('Parkinson Prediction Web App')
+    st.title("🌦️ Weather Data Prediction App")
 
-    # Input fields 		
-    name = st.text_input('Name')		
-    fo = st.text_input('MDVP:Fo(Hz)')
-    fhi = st.text_input('MDVP:Fhi(Hz)')
-    flo = st.text_input('MDVP:Flo(Hz)')
-    jitter_percent = st.text_input('MDVP:Jitter(%)')
-    jitter_abs = st.text_input('MDVP:Jitter(Abs)')
-    rap = st.text_input('MDVP:RAP')
-    ppq = st.text_input('MDVP:PPQ')
-    ddp = st.text_input('Jitter:DDP')
-    shimmer = st.text_input('MDVP:Shimmer')
-    shimmer_db = st.text_input('MDVP:Shimmer(dB)')
-    apq3 = st.text_input('Shimmer:APQ3')
-    apq5 = st.text_input('Shimmer:APQ5')
-    apq = st.text_input('MDVP:APQ')
-    dda = st.text_input('Shimmer:DDA')
-    nhr = st.text_input('NHR')
-    hnr = st.text_input('HNR')
-    rpde = st.text_input('RPDE')
-    dfa = st.text_input('DFA')
-    spread1 = st.text_input('spread1')
-    spread2 = st.text_input('spread2')
-    d2 = st.text_input('D2')
-    ppe = st.text_input('PPE')
+    # Numerical input fields
+    temperature = st.number_input("Temperature (°C)", min_value=-50.0, max_value=60.0, step=0.1)
+    humidity = st.number_input("Humidity (%)", min_value=0.0, max_value=100.0, step=0.1)
+    wind_speed = st.number_input("Wind Speed (km/h)", min_value=0.0, max_value=200.0, step=0.1)
+    precipitation = st.number_input("Precipitation (%)", min_value=0.0, max_value=100.0, step=0.1)
+    pressure = st.number_input("Atmospheric Pressure (hPa)", min_value=800.0, max_value=1100.0, step=0.1)
+    uv_index = st.number_input("UV Index", min_value=0.0, max_value=15.0, step=0.1)
+    visibility = st.number_input("Visibility (km)", min_value=0.0, max_value=50.0, step=0.1)
 
-    # Prediction result
-    diagnosis = ''
+    # Dropdowns for categorical values
+    cloud_cover = st.selectbox("Cloud Cover", [
+        "0 - Overcast", 
+        "1 - Partly Cloudy", 
+        "2 - Clear", 
+        "3 - Cloudy"
+    ])
 
-    if st.button('Parkinsons Test Report'):
+    season_val = st.selectbox("Season", [
+        "0 - Winter", 
+        "1 - Spring", 
+        "2 - Autumn", 
+        "3 - Summer"
+    ])
+
+    location_val = st.selectbox("Location", [
+        "0 - Inland", 
+        "1 - Mountain", 
+        "2 - Coastal"
+    ])
+
+    if st.button("🔍 Predict Weather"):
         try:
-            # Convert all inputs to float before passing to model
-            input_data = [float(name), float(fo), float(fhi), float(flo),
-              float(jitter_percent), float(jitter_abs), float(rap),
-              float(ppq), float(ddp), float(shimmer),
-              float(shimmer_db), float(apq3), float(apq5),
-              float(apq), float(dda), float(nhr),
-              float(hnr), float(rpde), float(dfa),
-              float(spread1), float(spread2), float(d2),
-              float(ppe)]
-            
-            diagnosis = heart_disease_prediction(input_data)
-        except ValueError:
-            diagnosis = "⚠️ Please enter valid numeric values in all fields."
+            # Extract only the numeric value from dropdowns
+            input_list = [
+                temperature,
+                humidity,
+                wind_speed,
+                precipitation,
+                float(cloud_cover.split(" - ")[0]),
+                pressure,
+                uv_index,
+                float(season_val.split(" - ")[0]),
+                visibility,
+                float(location_val.split(" - ")[0])
+            ]
+            prediction = weather_prediction(input_list)
+            st.success(f"🌤️ Predicted Weather: **{prediction}**")
 
-        st.success(diagnosis)
-
-if _name_ == '_main_':
+        except Exception as e:
+            st.error(f"❗ Error occurred: {str(e)}")
+if __name__ == '__main__':
     main()
